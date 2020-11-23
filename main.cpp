@@ -1,5 +1,7 @@
 #include<iostream>
 #include<fstream>
+#include<queue>
+#include<stack>
 using namespace std;
 char **map;
 int o_row, o_cul;
@@ -7,6 +9,8 @@ int row, cul, battery;
 int **path;
 int path_i;
 fstream Out;
+stack<int> path_row;
+stack<int> path_cul;
 
 bool end(void){
     for(int i = 0; i < row; i++){
@@ -123,11 +127,61 @@ int main(int argc, char* argv[]){
                 map[i][j] = '~';
         }
     }
+    for(int i = 0; i < row; i++){
+        for(int j = 0; j < cul; j++){
+            cout<<map[i][j]<<" ";
+        }
+        cout<<endl;
+    }
+    cout<<endl;
+    //DFS traversal
+    int temp_row = o_row;
+    int temp_cul = o_cul;
+    char  min;
+    int min_row, min_cul;
+    while(!end()){
+        path_row.push(temp_row);
+        path_cul.push(temp_cul);
+        map[temp_row][temp_cul]++;
+        //find the direction
+        min = '~';
+        if(temp_cul + 1 < cul && min > map[temp_row][temp_cul + 1]){//right
+            min = map[temp_row][temp_cul + 1];
+            min_row = temp_row;
+            min_cul = temp_cul + 1;
+            cout<<'r';
+        }
+        if(temp_row + 1 < row && min > map[temp_row + 1][temp_cul]){//down
+            min = map[temp_row + 1][temp_cul];
+            min_row = temp_row + 1;
+            min_cul = temp_cul;
+        }
+        if(temp_cul - 1 >= 0 && min > map[temp_row][temp_cul - 1]){//left
+            min = map[temp_row][temp_cul - 1];
+            min_row = temp_row;
+            min_cul = temp_cul - 1;
+            cout<<'l';
+        }
+        if(temp_row - 1 >= 0 && min > map[temp_row - 1][temp_cul]){//up
+            min = map[temp_row - 1][temp_cul];
+            min_row = temp_row - 1;
+            min_cul = temp_cul;
+        }
+        temp_row = min_row;
+        temp_cul = min_cul;
+    }
+    
+    
     //Output
     Out.open("final.path", fstream::out);
+    while(!path_row.empty()){
+        Out<<path_row.top()<<" "<<path_cul.top()<<endl;
+        path_row.pop();
+        path_cul.pop();
+    }
     //Start
     path_i = 0;
-    visit(o_row, o_cul, battery);
+    //visit(o_row, o_cul, battery);
     //Test:print the map
     for(int i = 0; i < row; i++){
         for(int j = 0; j < cul; j++){
