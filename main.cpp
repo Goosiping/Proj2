@@ -8,7 +8,6 @@ int o_row, o_cul;
 int row, cul, battery;
 int c_battery;
 int **path;
-int path_i;
 fstream Out;
 stack<int> path_row;
 stack<int> path_cul;
@@ -23,71 +22,8 @@ bool end(void){
     }
     return true;
 }
-
-void visit(int c_row, int c_cul, int c_battery){
-    if(end()){
-        return;
-    }
-    path[path_i][0] = c_row;
-    path[path_i][1] = c_cul;
-    path_i ++;
-    map[c_row][c_cul] += 1;
-    Out<<c_row<<" "<<c_cul<<endl;
-    cout<<c_row<<" "<<c_cul<<" "<<c_battery<<map[c_row][c_cul + 1]<<map[c_row - 1][c_cul]<<map[c_row][c_cul - 1]<<endl;
-    //If run out of battery
-    if(c_battery < battery / 2 + 1){
-        for(int i = path_i - 2; i > 0; i--){
-            Out<<path[i][0]<<" "<<path[i][1]<<endl;
-        }
-        path_i = 0;
-        visit(o_row, o_cul, battery);
-        return;
-    }
-    //Charge at the charge point
-    if(c_row == o_row && c_cul == o_cul)
-        c_battery = battery;
-    //Next step direction
-    char dir;
-    char min = map[c_row][c_cul + 1];
-    if(c_row + 1 < row && map[c_row + 1][c_cul] < min){
-        dir = 'd';
-        min = map[c_row + 1][c_cul];
-    }
-    else if(c_cul - 1 >= 0 && map[c_row][c_cul - 1] < min){
-        dir = 'l';
-        min = map[c_row][c_cul - 1];
-    }
-    else if(c_row - 1 >= 0 && map[c_row - 1][c_cul] < min){
-        dir = 'u';
-        min = map[c_row - 1][c_cul];
-    }
-    else{
-        dir = 'r';
-    }
-    if(c_row == 98 && c_cul == 98){
-        cout<<dir<<endl;
-    }
-    //Next step
-    switch (dir)
-    {
-    case 'r':
-        visit(c_row, c_cul + 1, c_battery - 1);
-        break;
-    case 'd':
-        visit(c_row + 1, c_cul, c_battery - 1);
-        break;
-    case 'l':
-        visit(c_row, c_cul - 1, c_battery - 1);
-        break;
-    case 'u':
-        visit(c_row - 1, c_cul, c_battery - 1);
-        break;
-    default:
-        break;
-    }
-}
-
 int main(int argc, char* argv[]){
+    
     //Read files
     ifstream Infile;
     Infile.open(argv[1], fstream::in);
@@ -97,7 +33,6 @@ int main(int argc, char* argv[]){
     }
 
     //parameters initialize
-    
     Infile>>row>>cul>>battery;
     map = new char*[row];
     for(int i = 0; i < row; i++){
@@ -167,15 +102,6 @@ int main(int argc, char* argv[]){
             path[temp_row - 1][temp_cul] = path[temp_row][temp_cul] + 1;
         }
     }
-    
-
-    for(int i = 0; i < row; i++){
-        for(int j = 0; j < cul; j++){
-            cout<<map[i][j]<<" ";
-        }
-        cout<<endl;
-    }
-    cout<<endl;
     //DFS traversal
     int temp_row = o_row;
     int temp_cul = o_cul;
@@ -241,10 +167,9 @@ int main(int argc, char* argv[]){
             temp_cul = min_cul;
             c_battery--;
         }
-        
     }
     //Back to charge point
-    while(temp_row != o_row && temp_cul!= o_cul){
+    while(temp_row != o_row || temp_cul!= o_cul){
         if(temp_cul + 1 < cul && path[temp_row][temp_cul + 1] == path[temp_row][temp_cul] - 1){//right
             path_row.push(temp_row);
             path_cul.push(temp_cul + 1);
@@ -266,24 +191,31 @@ int main(int argc, char* argv[]){
             temp_row = temp_row - 1;
         }
     }
-    
     //Output
     Out.open("final.path", fstream::out);
+    stack<int> real_row, real_cul;
+    int steps = 0;
     while(!path_row.empty()){
-        Out<<path_row.top()<<" "<<path_cul.top()<<endl;
+        real_row.push(path_row.top());
+        real_cul.push(path_cul.top());
         path_row.pop();
         path_cul.pop();
+        steps++;
     }
-    //Start
-    path_i = 0;
-    //visit(o_row, o_cul, battery);
+    Out<<steps<<endl;
+    while(!real_row.empty()){
+        Out<<real_row.top()<<" "<<real_cul.top()<<endl;
+        real_row.pop();
+        real_cul.pop();
+    }
+    
     //Test:print the map
-    for(int i = 0; i < row; i++){
+    /*for(int i = 0; i < row; i++){
         for(int j = 0; j < cul; j++){
             cout<<map[i][j]<<" ";
         }
         cout<<endl;
-    }
+    }*/
     Infile.close();
     Out.close();
 }
